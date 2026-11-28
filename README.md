@@ -90,6 +90,20 @@ grown into a way to **keep other Namco machines of that era running** with a mod
   <img width="80%" alt="Balloon Panic Stage" src="docs/images/panicpark_balloon_panic_stage_widescreen.png" />
   <img width="80%" alt="Ring Panic Stage" src="docs/images/panicpark_ring_panic_stage_widescreen.png" />
   </p>
+- **Downhill Bikers (new port, System 23) -- work in progress, playable:** boots, runs the whole attract mode (title, How to
+  Play, the Course Preview with its full HUD and messages, the rankings) and a race from coin to finish, with the in-race HUD
+  (rest time, position, speed, the course bar, the section messages). Decompiled from MAME's `downhillu` set (US, DH3 Ver. A
+  -- the one MAME runs; it needs its parent `downhill.zip`) with the ASCA-3 I/O board in `namco_asca3.zip`:
+  `downhill/build.sh downhill.zip namco_asca3.zip` (a merged `downhill.zip` holds downhillu's chips; with split sets add
+  `downhillu.zip` to the command; `N22TOOLS` set, as for Panic Park), then `./launch.sh downhill`.
+  Controls: Left / Right = handlebar, Up (or W) = pedal, Z / X = left / right brake (Down: both), 1 / Enter = START (the
+  confirm button), 5 = coin, PgUp / PgDn / Home = the service Select up / down / Enter, F2 = test mode, 9 = service coin.
+  Pads: left stick = handlebar, right trigger (or A) = pedal, LB / RB = brakes (left trigger: both), Start = START. The
+  default coin setting is 4 coins a credit (change it in the test menu's COIN OPTIONS).
+  Fixed on the way: switch tables Ghidra missed (a crash at the first course preview), the C417 point-ROM read port (the game
+  reads its model directory through it: every model was wrong), the C435 model blend factor is signed (the dust puffs were
+  screen-high slabs), the HUD glyph upload's time budget (the course preview had no text). Known: the initials on the
+  RANKING screen and the "ready" letters at the start are drawn with coloured noise instead of plain green.
 - **3D texture filter (Display > 3D texture filter)** for every textured game: **Off, Bilinear, Sharp bilinear, Trilinear,
   Sharp trilinear**, with **anisotropic filtering 2x / 4x / 8x / 16x** in the trilinear modes. Only the 3D polygons are
   filtered: the HUD, the text layer and the 2D sprites stay sharp. It replaces the Texture smoothing switch: Alpine
@@ -218,7 +232,7 @@ ninja -C tokyowar/build          # the same for every game folder (cybsled: -j1)
 ```
 
 Game folders: `tokyowar raverace acedriver victlap cybrcomm adillor airco22 alpiner alpines alpinr2 aquajet cybrcycc
-dirtdash timecris cybsled aking finfurl crszone gunwars panicprk tc2 ridgerac`.
+dirtdash timecris cybsled aking finfurl crszone gunwars panicprk downhill tc2 ridgerac`.
 
 On Linux (any distribution: `./install-deps.sh` installs the compiler, CMake, SDL2, zlib and OpenGL headers), the games
 with their own `build.sh` build in one step from the ROM zips, e.g. Rapid River and Gunmen Wars:
@@ -228,6 +242,7 @@ export N22TOOLS=~/n22tools       # Ghidra 12.1.4 (ghidra_12.1.4_PUBLIC/), an emp
 rapidrvr/build.sh rapidrvr.zip namco_asca1.zip     # the first time: unpacks the ROMs, translates the program, builds
 gunwars/build.sh gunwars.zip namco_asca5.zip       # or a clone: gunwarsj.zip / gunwarsa.zip with gunwars.zip
 panicprk/build.sh panicprk.zip namco_asca3a.zip    # Panic Park
+downhill/build.sh downhill.zip namco_asca3.zip     # Downhill Bikers (split sets: add downhillu.zip)
 ./launch.sh rapid                                  # or: ./launch.sh gunmen / panic   (a number for the window size, --fullscreen)
 ```
 
@@ -244,7 +259,7 @@ licence.
 
 This project is not affiliated with or endorsed by Bandai Namco. Tokyo Wars, Ridge Racer, Rave Racer, Ace Driver, 
 Ace Driver: Victory Lap, Time Crisis, Cyber Cycles, Cyber Commando, Cyber Sled, Armadillo Racing, Alpine Racer, 
-Alpine Surfer, Aqua Jet, Air Combat, Rapid River, Final Furlong, Angler King, Gunmen Wars, Panic Park, Crisis Zone, Prop Cycle and Dirt Dash are trademarks 
+Alpine Surfer, Aqua Jet, Air Combat, Rapid River, Final Furlong, Angler King, Gunmen Wars, Panic Park, Downhill Bikers, Crisis Zone, Prop Cycle and Dirt Dash are trademarks 
 of Bandai Namco Entertainment Inc. You need your own legally obtained copy of each game.
 
 ## Credits
