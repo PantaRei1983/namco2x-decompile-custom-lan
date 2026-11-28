@@ -287,7 +287,9 @@ static void render_model(const s23_render_entry *e)
     if (mi_on) mi_ent[e->model]++;
     const uint32_t *data = &ptrom[adr], *data2 = &ptrom[adr2];
     uint32_t offs = 0;
-    const float fb_ = e->model_blend_factor / 16384.f, fa_ = 1.f - fb_;
+    /* the blend factor is SIGNED (1.0 = 0x4000): Downhill Bikers' dust puffs count it down from 0x2FFF through 0 to small negatives as
+     * they age (0xF810 = -0.12) -- read unsigned (MAME's), that was 3.9: the puff stretched into screen-high cream slabs over the course */
+    const float fb_ = (int16_t)e->model_blend_factor / 16384.f, fa_ = 1.f - fb_;
     while (adr + offs < ptrom_limit && adr2 + offs < ptrom_limit && GNPOLY < MAX_POLYS) {
         pvert pv[16];
         const uint32_t type = data[offs++], h = data[offs++];
@@ -1019,7 +1021,7 @@ static int mid_model(s23_render_entry *o, const s23_render_entry *a, const s23_r
     for (int k = 0; k < 9; k++) { double t = m[k] < 0 ? m[k] - 0.5 : m[k] + 0.5; o->m[k] = (int16_t)(t > 32767 ? 32767 : t < -32768 ? -32768 : t); }
     for (int k = 0; k < 3; k++) o->v[k] = (int32_t)llround(a->v[k] + ((double)b->v[k] - a->v[k]) * f);
     o->scaling = (float)(a->scaling + (b->scaling - a->scaling) * f);
-    o->model_blend_factor = (uint16_t)lround(a->model_blend_factor + ((double)b->model_blend_factor - a->model_blend_factor) * f);
+    o->model_blend_factor = (uint16_t)(int16_t)lround((int16_t)a->model_blend_factor + ((double)(int16_t)b->model_blend_factor - (int16_t)a->model_blend_factor) * f);   /* (signed, above) */
     return 1;
 }
 static int mid_immediate(s23_render_entry *o, const s23_render_entry *a, const s23_render_entry *b, double f)
