@@ -168,11 +168,33 @@ static const ss22_input_game dh_input = {
     .light_gun = false,
 };
 
+/* THE HUD GLYPH UPLOAD'S TIME BUDGET. The HUD (speed, start / finish, the course-preview box's messages, COURSE PREVIEW) is the C361 text
+ * layer: before an item is drawn its glyph set is copied into character RAM by 0x800030E4, a slice a frame, as many halfwords as
+ * (500 - the beam register) * 25 -- the time left before line 250. It reads the beam (0x0682000A, line * 2) through 0x8000E69C, called
+ * from 0x80003168 (return address 0x80003170), after the frame's work. On the board that work runs past vblank and the beam is low; here
+ * the CPU finishes the attract frame inside vblank, the register reads 0x3C1..0x3E7, the budget is 0 and the copy never starts -- the
+ * course preview had no text at all (the race, whose frame runs longer, got its slices). That one read sees line 0: the whole budget. */
+static int dh_mem_read(uint32_t p, int size, uint32_t *v)
+{
+    if (p != 0x0682000Au || size != 2) return 0;
+    extern uint8_t R[];
+    const uint32_t ra = (uint32_t)R[0xFC] << 24 | (uint32_t)R[0xFD] << 16 | (uint32_t)R[0xFE] << 8 | R[0xFF];   /* $ra (Ghidra's 0xF8, BE) */
+    if (ra != 0x80003170u) return 0;
+    int s23_screen_read(uint32_t, int, uint32_t *);
+    if (!s23_screen_read(p, size, v)) return 0;
+    if (*v >= 0x1F4u) *v = 0;
+    return 1;
+}
+
+/* the race HUD's section label (7200 "Sprint Section", 7201 "Downhill Section") sits on the text layer's dithered shadow strip above the
+ * course bar: on the board (the attract video) the label is over that strip, not dimmed by it */
+static int dh_over_text(int model) { return model == 7200 || model == 7201; }
+
 const s23_game_t s23_game = {
     .title = "Downhill Bikers", .tag = "downhill", .window_title = "Downhill Bikers", .mame_set = "downhillu",
     .zip_help = "MAME's downhillu.zip (Downhill Bikers, US DH3 Ver. A) with its parent downhill.zip, and namco_asca3.zip",
     .zips = zips, .nzips = (int)(sizeof zips / sizeof zips[0]), .chips = chips, .nchips = (int)(sizeof chips / sizeof chips[0]),
-    .io_asca3 = 1, .asca_in = dh_asca_in, .input = &dh_input,
+    .io_asca3 = 1, .asca_in = dh_asca_in, .input = &dh_input, .mem_read = dh_mem_read, .over_text = dh_over_text,
     .irq_prompt = 1,
     .twin = 0, .evo2 = 0,
     .clock = 169344000u,                          /* BUSCLOCK * 5 */
